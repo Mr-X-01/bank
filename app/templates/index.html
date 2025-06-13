@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - Кредитная История{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Кредитная История</h1>
+        <p class="hero-subtitle">Управляйте своими финансами эффективно</p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg"><i class="fas fa-sign-in-alt"></i> Войти</a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-secondary btn-lg"><i class="fas fa-user-plus"></i> Регистрация</a>
+        </div>
+    </div>
+    <div class="hero-image">
+        <img src="{{ url_for('static', filename='img/credit-hero.svg') }}" alt="Кредитная История" onerror="this.onerror=null; this.src='https://via.placeholder.com/500x400?text=Кредитная+История'">
+    </div>
+</div>
+
+<div class="features-section">
+    <h2 class="section-title">Почему выбирают нас</h2>
+    
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+            <h3>Безопасность</h3>
+            <p>Ваши данные надёжно защищены и доступны только вам</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+            <h3>Быстрота</h3>
+            <p>Получайте информацию о кредитах в течение нескольких минут</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+            <h3>Аналитика</h3>
+            <p>Детальный анализ вашей кредитной истории и платежей</p>
+        </div>
+    </div>
+</div>
+
+<div class="how-it-works">
+    <h2 class="section-title">Как это работает</h2>
+    
+    <div class="steps">
+        <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h3>Регистрация</h3>
+                <p>Создайте учетную запись и заполните необходимые данные</p>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h3>Верификация</h3>
+                <p>Загрузите ИНН и согласие на обработку данных</p>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h3>Получение данных</h3>
+                <p>Получите полную информацию о ваших кредитах и платежах</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="cta-section">
+    <h2>Готовы начать?</h2>
+    <p>Зарегистрируйтесь сейчас и получите доступ к вашей кредитной истории</p>
+    <div class="cta-buttons">
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Зарегистрироваться</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline">Уже есть аккаунт? Войти</a>
+    </div>
+</div>
+{% endblock %}

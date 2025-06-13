@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Профиль - Кредитная История{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Профиль пользователя</div>
+    <div class="card-body">
+        <div class="profile-section">
+            <h3>Информация о пользователе</h3>
+            <p><strong>Имя пользователя:</strong> {{ current_user.username }}</p>
+            <p><strong>ИНН:</strong> {{ current_user.inn or 'Не указан' }}</p>
+            <p>
+                <strong>Статус проверки:</strong> 
+                {% if current_user.verification_status == 'Проверен' %}
+                    <span class="status status-verified">{{ current_user.verification_status }}</span>
+                {% elif current_user.verification_status == 'Ожидание...' %}
+                    <span class="status status-pending">{{ current_user.verification_status }}</span>
+                {% else %}
+                    <span class="status">{{ current_user.verification_status }}</span>
+                {% endif %}
+            </p>
+            <p><strong>Файл согласия:</strong> {{ 'Загружен' if current_user.pdf_path else 'Не загружен' }}</p>
+        </div>
+
+        <div class="profile-section">
+            <h3>Обновить данные</h3>
+            <form method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="inn" class="form-label">ИНН</label>
+                    <input type="text" name="inn" id="inn" class="form-control" value="{{ current_user.inn or '' }}" required>
+                    <small>Введите ваш ИНН (10 или 12 цифр)</small>
+                </div>
+                <div class="form-group">
+                    <label for="pdf_file" class="form-label">Файл согласия (PDF)</label>
+                    <input type="file" name="pdf_file" id="pdf_file" class="form-control" accept=".pdf" {% if not current_user.pdf_path %}required{% endif %}>
+                    <small>Загрузите файл согласия в формате PDF</small>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">Обновить данные</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

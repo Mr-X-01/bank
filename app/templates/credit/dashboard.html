@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}Панель управления - Кредитная История{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2><i class="fas fa-tachometer-alt"></i> Панель управления</h2>
+    <p>Добро пожаловать, <strong>{{ current_user.username }}</strong>!</p>
+</div>
+
+{% if current_user.verification_status != 'Проверен' %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>Для просмотра кредитной истории необходимо заполнить профиль и пройти проверку.</p>
+        <a href="{{ url_for('credit.profile') }}" class="btn btn-primary"><i class="fas fa-user-edit"></i> Заполнить профиль</a>
+    </div>
+{% elif credits %}
+    <div class="dashboard-summary">
+        <div class="summary-card total-credits">
+            <div class="summary-icon"><i class="fas fa-credit-card"></i></div>
+            <div class="summary-info">
+                <h3>{{ credits|length }}</h3>
+                <p>Всего кредитов</p>
+            </div>
+        </div>
+        
+        {% set total_debt = namespace(value=0) %}
+        {% set total_overdue = namespace(value=0) %}
+        {% for credit in credits %}
+            {% set total_debt.value = total_debt.value + credit.remaining_amount %}
+            {% set total_overdue.value = total_overdue.value + credit.overdue_amount %}
+        {% endfor %}
+        
+        <div class="summary-card total-debt">
+            <div class="summary-icon"><i class="fas fa-money-bill-wave"></i></div>
+            <div class="summary-info">
+                <h3>{{ "{:,.2f}".format(total_debt.value) }} ₽</h3>
+                <p>Общая задолженность</p>
+            </div>
+        </div>
+        
+        <div class="summary-card {% if total_overdue.value > 0 %}overdue{% endif %}">
+            <div class="summary-icon"><i class="fas fa-exclamation-circle"></i></div>
+            <div class="summary-info">
+                <h3>{{ "{:,.2f}".format(total_overdue.value) }} ₽</h3>
+                <p>Просроченные платежи</p>
+            </div>
+        </div>
+        
+        <div class="summary-card next-payment">
+            {% set nearest_date = namespace(value=None) %}
+            {% set nearest_amount = namespace(value=0) %}
+            {% for credit in credits %}
+                {% if not nearest_date.value or credit.next_payment_date < nearest_date.value %}
+                    {% set nearest_date.value = credit.next_payment_date %}
+                    {% set nearest_amount.value = credit.monthly_payment %}
+                {% endif %}
+            {% endfor %}
+            
+            <div class="summary-icon"><i class="fas fa-calendar-alt"></i></div>
+            <div class="summary-info">
+                <h3>{{ "{:,.2f}".format(nearest_amount.value) }} ₽</h3>
+                <p>Следующий платеж: {{ nearest_date.value }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="credits-container">
+        {% for credit in credits %}
+        <div class="credit-card {% if credit.overdue_amount > 0 %}overdue{% endif %}">
+            <div class="credit-card-header">
+                <div class="bank-logo">
+                    {% if credit.bank == 'Сбербанк' %}
+                        <i class="fas fa-university" style="color: #1a9f29;"></i>
+                    {% elif credit.bank == 'ВТБ' %}
+                        <i class="fas fa-university" style="color: #0a3c7e;"></i>
+                    {% elif credit.bank == 'Альфа-Банк' %}
+                        <i class="fas fa-university" style="color: #ef3124;"></i>
+                    {% else %}
+                        <i class="fas fa-university"></i>
+                    {% endif %}
+                    <span>{{ credit.bank }}</span>
+                </div>
+                <div class="credit-status credit-status-{{ credit.status.lower() }}">
+                    {{ credit.status }}
+                </div>
+            </div>
+            
+            <div class="credit-card-body">
+                <div class="credit-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Сумма кредита:</div>
+                        <div class="detail-value">{{ "{:,.2f}".format(credit.amount) }} ₽</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Дата выдачи:</div>
+                        <div class="detail-value">{{ credit.date }}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Процентная ставка:</div>
+                        <div class="detail-value">{{ credit.interest_rate }}%</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Срок кредита:</div>
+                        <div class="detail-value">{{ credit.term }} мес.</div>
+                    </div>
+                </div>
+                
+                <div class="payment-info">
+                    <div class="detail-row highlight">
+                        <div class="detail-label">Ежемесячный платеж:</div>
+                        <div class="detail-value">{{ "{:,.2f}".format(credit.monthly_payment) }} ₽</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Остаток долга:</div>
+                        <div class="detail-value">{{ "{:,.2f}".format(credit.remaining_amount) }} ₽</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Следующий платеж:</div>
+                        <div class="detail-value">{{ credit.next_payment_date }}</div>
+                    </div>
+                    {% if credit.overdue_amount > 0 %}
+                    <div class="detail-row overdue">
+                        <div class="detail-label">Просроченная сумма:</div>
+                        <div class="detail-value">{{ "{:,.2f}".format(credit.overdue_amount) }} ₽</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="credit-card-actions">
+                <button class="btn btn-primary btn-sm" onclick="togglePaymentHistory('{{ credit.id }}')"><i class="fas fa-history"></i> История платежей</button>
+                <button class="btn btn-success btn-sm"><i class="fas fa-money-bill"></i> Оплатить</button>
+            </div>
+            
+            <div class="payment-history" id="payment-history-{{ credit.id }}" style="display: none;">
+                <h4>История платежей</h4>
+                {% if credit.payments %}
+                <table class="table payment-table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Сумма</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in credit.payments %}
+                        <tr>
+                            <td>{{ payment.date }}</td>
+                            <td>{{ "{:,.2f}".format(payment.amount) }} ₽</td>
+                            <td>
+                                <span class="payment-status payment-status-{{ payment.status.lower() }}">
+                                    {{ payment.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>Нет данных о платежах.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        <p>У вас нет записей о кредитах.</p>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function togglePaymentHistory(creditId) {
+        const historyElement = document.getElementById('payment-history-' + creditId);
+        if (historyElement.style.display === 'none') {
+            historyElement.style.display = 'block';
+        } else {
+            historyElement.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}
